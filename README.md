@@ -28,20 +28,6 @@ Each file in this repo is one topic (`commits.md`, `task-starting.md`, …).
 They're pulled into Claude Code's global config via `@`-imports in
 `$HOME/.claude/CLAUDE.md`, so Claude picks them up as global preferences.
 
-Layout:
-
-```
-$HOME/claude-dotfiles/
-├── commits.md
-├── task-starting.md
-└── ...
-
-$HOME/.claude/CLAUDE.md
-└── @-imports each file above by absolute path
-```
-
-### Example `$HOME/.claude/CLAUDE.md`
-
 For a user `bob` who has cloned this repo to `/Users/bob/claude-dotfiles/`,
 their `/Users/bob/.claude/CLAUDE.md` would look like this:
 
@@ -58,6 +44,18 @@ create `~/claude-dotfiles/<topic>.md` and add an `@import` line here.
 
 Substitute `/Users/bob/` for your own home directory. On Linux that's typically
 `/home/<you>/`.
+
+Layout:
+
+```
+$HOME/claude-dotfiles/
+├── commits.md
+├── task-starting.md
+└── ...
+
+$HOME/.claude/CLAUDE.md
+└── @-imports each file above by absolute path
+```
 
 ## Adding a new topic
 
