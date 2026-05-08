@@ -3,6 +3,23 @@
 Personal Claude Code preferences, kept in git so they're portable across
 machines.
 
+For a user `bob` who has cloned this repo to `/Users/bob/claude-dotfiles/`,
+their `/Users/bob/.claude/CLAUDE.md` would look like this:
+
+````markdown
+# Global preferences
+
+Modular: each topic lives in its own file in `~/claude-dotfiles/` (a git-tracked
+dotfiles repo) and is imported below by absolute path. To add a new topic,
+create `~/claude-dotfiles/<topic>.md` and add an `@import` line here.
+
+@/Users/bob/claude-dotfiles/commits.md
+@/Users/bob/claude-dotfiles/task-starting.md
+````
+
+Substitute `/Users/bob/` for your own home directory. On Linux that's typically
+`/home/<you>/`.
+
 ## Why a separate repo?
 
 `~/.claude/` is Claude Code's own working directory — it stores active
@@ -27,23 +44,6 @@ Pulling preferences into a dedicated repo fixes all of that:
 Each file in this repo is one topic (`commits.md`, `task-starting.md`, …).
 They're pulled into Claude Code's global config via `@`-imports in
 `$HOME/.claude/CLAUDE.md`, so Claude picks them up as global preferences.
-
-For a user `bob` who has cloned this repo to `/Users/bob/claude-dotfiles/`,
-their `/Users/bob/.claude/CLAUDE.md` would look like this:
-
-````markdown
-# Global preferences
-
-Modular: each topic lives in its own file in `~/claude-dotfiles/` (a git-tracked
-dotfiles repo) and is imported below by absolute path. To add a new topic,
-create `~/claude-dotfiles/<topic>.md` and add an `@import` line here.
-
-@/Users/bob/claude-dotfiles/commits.md
-@/Users/bob/claude-dotfiles/task-starting.md
-````
-
-Substitute `/Users/bob/` for your own home directory. On Linux that's typically
-`/home/<you>/`.
 
 Layout:
 
