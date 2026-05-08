@@ -40,6 +40,25 @@ $HOME/.claude/CLAUDE.md
 └── @-imports each file above by absolute path
 ```
 
+### Example `$HOME/.claude/CLAUDE.md`
+
+For a user `bob` who has cloned this repo to `/Users/bob/claude-dotfiles/`,
+their `/Users/bob/.claude/CLAUDE.md` would look like this:
+
+````markdown
+# Global preferences
+
+Modular: each topic lives in its own file in `~/claude-dotfiles/` (a git-tracked
+dotfiles repo) and is imported below by absolute path. To add a new topic,
+create `~/claude-dotfiles/<topic>.md` and add an `@import` line here.
+
+@/Users/bob/claude-dotfiles/commits.md
+@/Users/bob/claude-dotfiles/task-starting.md
+````
+
+Substitute `/Users/bob/` for your own home directory. On Linux that's typically
+`/home/<you>/`.
+
 ## Adding a new topic
 
 1. Create `$HOME/claude-dotfiles/<topic>.md`.
