@@ -1,71 +1,95 @@
 # claude-dotfiles
 
-Personal Claude Code preferences, kept in git so they're portable across
-machines.
+Portable preferences shared by Claude Code and Codex. The topic files in this
+repository are the canonical source; `make apply` renders the configuration
+for both agents.
 
-For a user `bob` who has cloned this repo to `/Users/bob/claude-dotfiles/`,
-their `/Users/bob/.claude/CLAUDE.md` would look like this:
+## Prerequisites
 
-````markdown
-# Global preferences
+- POSIX shell, `make`, and standard Unix tools.
+- Bats Core 1.5 or newer for `make test`. On macOS, install it with
+  `brew install bats-core`; on other platforms, use the installation guidance
+  at <https://github.com/bats-core/bats-core>.
 
-Modular: each topic lives in its own file in `~/claude-dotfiles/` (a git-tracked
-dotfiles repo) and is imported below by absolute path. To add a new topic,
-create `~/claude-dotfiles/<topic>.md` and add an `@import` line here.
+## Commands
 
-@/Users/bob/claude-dotfiles/commits.md
-@/Users/bob/claude-dotfiles/task-starting.md
-````
+```sh
+make apply
+make test
+```
 
-Substitute `/Users/bob/` for your own home directory. On Linux that's typically
-`/home/<you>/`.
+`make apply` checks all topic files, renders both generated documents, checks
+for conflicts, and installs each regular file atomically. It uses the current
+home directory by default. `DEST_HOME`, `AGENTS_FILE`, and `TOPIC_FILES` can be
+overridden when applying to another location or testing.
 
-## Why a separate repo?
+`make test` runs the Bats integration suite. Tests use temporary destinations
+and do not modify the real Claude Code or Codex configuration.
 
-`~/.claude/` is Claude Code's own working directory — it stores active
-projects, plans, agents, MCP server caches, and other ephemeral tooling
-state. Mixing personal preferences in there means:
+## Installed layout
 
-- Real preferences get lost in the noise of generated files.
-- Versioning and diffing the rules I actually care about is awkward.
-- Syncing to a new machine is messy — most of `~/.claude/` shouldn't be
-  copied across, but a few files should.
-
-Pulling preferences into a dedicated repo fixes all of that:
-
-- `~/.claude/` stays clean and untracked-by-design.
-- Preferences are portable: `git clone` on a new machine gets them all.
-- Real history, diffs, and rollback for the rules Claude follows.
-- Easier to share or review specific rules without dragging along
-  whatever's sitting in `~/.claude/projects/` at the time.
-
-## How it works
-
-Each file in this repo is one topic (`commits.md`, `task-starting.md`, …).
-They're pulled into Claude Code's global config via `@`-imports in
-`$HOME/.claude/CLAUDE.md`, so Claude picks them up as global preferences.
-
-Layout:
+The repository keeps topics as separate files and the Makefile's ordered
+`TOPIC_FILES` list controls their order:
 
 ```
-$HOME/claude-dotfiles/
+<repository>/
 ├── commits.md
 ├── task-starting.md
 └── ...
 
 $HOME/.claude/CLAUDE.md
-└── @-imports each file above by absolute path
+└── @<absolute repository path>/<topic>.md
+
+<repository>/.agents/AGENTS.md
+└── concatenated topics (generated and ignored by Git)
+
+$HOME/.codex/AGENTS.md
+└── absolute symlink to <repository>/.agents/AGENTS.md
 ```
 
-## Adding a new topic
+Claude Code reads the absolute `@`-imports in `$HOME/.claude/CLAUDE.md`.
+Codex does not support those imports, so its generated `.agents/AGENTS.md`
+contains the topic files concatenated in `TOPIC_FILES` order. The Codex
+configuration is an absolute symlink to that generated file.
 
-1. Create `$HOME/claude-dotfiles/<topic>.md`.
-2. Add an `@`-import line for it to `$HOME/.claude/CLAUDE.md`. Note: `@`-imports
-   require a literal absolute path (they don't expand `~` or `$HOME`), so the
-   line will look like `@/Users/<you>/claude-dotfiles/<topic>.md`.
-3. Commit.
+## Ownership and conflicts
+
+Every generated document starts with this exact first line:
+
+```markdown
+<!-- managed-by: agent-dotfiles -->
+```
+
+A regular destination is managed only when that marker is its first line.
+Managed files refresh without prompting. A marker later in the file does not
+establish ownership.
+
+An existing unmanaged regular file, or a Codex symlink that does not already
+point to the configured `AGENTS_FILE`, is shown with a unified diff and a
+`Replace unmanaged ...? [y/N]` prompt. Only `y` or `Y` approves replacement;
+`n`, any other answer, or end-of-file aborts before installation, leaving all
+destinations unchanged. Directories and other unsupported destination types
+are rejected. For a broken Codex symlink, `make apply` prints its raw symlink
+target and compares the desired file with `/dev/null` before prompting.
+
+## Adding a topic
+
+1. Create a readable Markdown file in the repository.
+2. Add its filename to `TOPIC_FILES` in the Makefile, in the desired order.
+3. Run `make apply` and commit the topic and Makefile changes.
+
+The ordered list drives both Claude's imports and Codex's concatenated output,
+so no generated file needs to be edited by hand.
+
+## CI and GitHub Actions billing
+
+GitHub Actions uses standard GitHub-hosted runners for this repository's
+Ubuntu and macOS matrix. Public repositories receive free and unlimited use of
+standard runners; private repositories use the account's included allowance,
+with billing possible after it is exhausted. See [GitHub Actions product
+billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 
 ## What belongs in here
 
-See [`CLAUDE.md`](./CLAUDE.md) — short version: general, portable dev
-practices only, never work- or job-specific content.
+See [`CLAUDE.md`](./CLAUDE.md): general, portable development practices only,
+never work- or job-specific content.
