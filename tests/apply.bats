@@ -40,6 +40,8 @@ expected_claude() {
   printf '%s\n\n' 'Each topic is imported from the agent-dotfiles repository.'
   printf '@%s/commits.md\n' "$active_repo"
   printf '@%s/task-starting.md\n' "$active_repo"
+  printf '@%s/planning.md\n' "$active_repo"
+  printf '@%s/code-comments.md\n' "$active_repo"
 }
 
 expected_agents() {
@@ -48,6 +50,10 @@ expected_agents() {
   cat "$active_repo/commits.md"
   printf '\n'
   cat "$active_repo/task-starting.md"
+  printf '\n'
+  cat "$active_repo/planning.md"
+  printf '\n'
+  cat "$active_repo/code-comments.md"
   printf '\n'
 }
 
@@ -58,6 +64,8 @@ make_fixture_repo() {
   cp "$repo_root/scripts/apply.sh" "$active_repo/scripts/apply.sh"
   cp "$repo_root/commits.md" "$active_repo/commits.md"
   cp "$repo_root/task-starting.md" "$active_repo/task-starting.md"
+  cp "$repo_root/planning.md" "$active_repo/planning.md"
+  cp "$repo_root/code-comments.md" "$active_repo/code-comments.md"
 }
 
 @test "fresh apply renders ordered documents and an absolute Codex symlink" {
