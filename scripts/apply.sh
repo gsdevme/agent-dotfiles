@@ -1,0 +1,198 @@
+#!/bin/sh
+
+set -eu
+
+: "${DEST_HOME:?DEST_HOME is required}"
+: "${AGENTS_FILE:?AGENTS_FILE is required}"
+: "${REPO_ROOT:?REPO_ROOT is required}"
+: "${TOPIC_FILES:?TOPIC_FILES is required}"
+
+marker='<!-- managed-by: agent-dotfiles -->'
+work_dir=$(mktemp -d "${TMPDIR:-/tmp}/agent-dotfiles-apply.XXXXXX")
+trap 'rm -rf "$work_dir"' EXIT HUP INT TERM
+
+claude_source="$work_dir/CLAUDE.md"
+agents_source="$work_dir/AGENTS.md"
+claude_target="$DEST_HOME/.claude/CLAUDE.md"
+codex_target="$DEST_HOME/.codex/AGENTS.md"
+
+fail() {
+    printf '%s\n' "$1" >&2
+    exit 1
+}
+
+is_managed_file() {
+    file=$1
+    [ -f "$file" ] || return 1
+    first_line=$(sed -n '1p' "$file")
+    [ "$first_line" = "$marker" ]
+}
+
+validate_parent() {
+    path=$1
+    parent=$(dirname -- "$path")
+
+    while [ ! -e "$parent" ] && [ ! -L "$parent" ]; do
+        next_parent=$(dirname -- "$parent")
+        [ "$next_parent" = "$parent" ] && break
+        parent=$next_parent
+    done
+
+    if [ -e "$parent" ] && [ ! -d "$parent" ]; then
+        fail "Cannot create parent directory for: $path"
+    fi
+}
+
+validate_regular_destination() {
+    target=$1
+
+    if [ -L "$target" ]; then
+        fail "Unsupported destination type: $target"
+    fi
+    if [ -e "$target" ] && [ ! -f "$target" ]; then
+        fail "Unsupported destination type: $target"
+    fi
+}
+
+confirm_replacement() {
+    existing=$1
+    desired=$2
+    label=$3
+
+    if diff -u "$existing" "$desired" >&2; then
+        diff_status=0
+    else
+        diff_status=$?
+    fi
+    if [ "$diff_status" -gt 1 ]; then
+        fail "Unable to compare existing and desired content for: $label"
+    fi
+    printf 'Replace unmanaged %s? [y/N] ' "$label" >&2
+    if ! IFS= read -r answer; then
+        printf '\nAborted: replacement was not approved.\n' >&2
+        exit 1
+    fi
+    case $answer in
+        y|Y) ;;
+        *)
+            printf 'Aborted: replacement was not approved.\n' >&2
+            exit 1
+            ;;
+    esac
+}
+
+confirm_regular_destination() {
+    target=$1
+    desired=$2
+
+    if [ -e "$target" ] && ! is_managed_file "$target"; then
+        confirm_replacement "$target" "$desired" "$target"
+    fi
+}
+
+confirm_codex_destination() {
+    if [ -L "$codex_target" ]; then
+        current_target=$(readlink "$codex_target") || fail "Unable to read Codex symlink: $codex_target"
+        [ "$current_target" = "$AGENTS_FILE" ] && return
+
+        if [ -e "$codex_target" ] && [ -f "$codex_target" ]; then
+            printf 'Current Codex symlink target: %s\n' "$current_target" >&2
+            confirm_replacement "$codex_target" "$agents_source" "$codex_target"
+        elif [ -e "$codex_target" ]; then
+            nonregular_source="$work_dir/codex-nonregular-target"
+            printf '%s\n' 'Codex symlink resolves to a non-regular target.' >"$nonregular_source"
+            confirm_replacement "$nonregular_source" "$agents_source" "$codex_target"
+        else
+            printf 'Current Codex symlink target: %s\n' "$current_target" >&2
+            confirm_replacement /dev/null "$agents_source" "$codex_target"
+        fi
+        return
+    fi
+
+    if [ -e "$codex_target" ] && [ ! -f "$codex_target" ]; then
+        fail "Unsupported destination type: $codex_target"
+    fi
+    if [ -e "$codex_target" ] && ! is_managed_file "$codex_target"; then
+        confirm_replacement "$codex_target" "$agents_source" "$codex_target"
+    fi
+}
+
+install_file_atomically() {
+    source=$1
+    destination=$2
+    destination_dir=$(dirname -- "$destination")
+    temporary=$(mktemp "$destination_dir/.agent-dotfiles.XXXXXX") || fail "Unable to create temporary file for: $destination"
+
+    if ! cat "$source" >"$temporary" || ! mv -f "$temporary" "$destination"; then
+        rm -f "$temporary"
+        fail "Unable to install: $destination"
+    fi
+}
+
+replace_path_atomically() {
+    source=$1
+    destination=$2
+
+    case $(uname -s) in
+        Darwin) mv -f -h "$source" "$destination" ;;
+        Linux) mv -f -T "$source" "$destination" ;;
+        *) return 1 ;;
+    esac
+}
+
+install_codex_symlink_atomically() {
+    destination_dir=$(dirname -- "$codex_target")
+    temporary=$(mktemp "$destination_dir/.agent-dotfiles-link.XXXXXX") || fail "Unable to create temporary symlink for: $codex_target"
+    rm -f "$temporary"
+
+    if ! ln -s "$AGENTS_FILE" "$temporary" || ! replace_path_atomically "$temporary" "$codex_target"; then
+        rm -f "$temporary"
+        fail "Unable to install Codex symlink: $codex_target"
+    fi
+}
+
+set -f
+for topic in $TOPIC_FILES; do
+    topic_path="$REPO_ROOT/$topic"
+    if [ ! -f "$topic_path" ] || [ ! -r "$topic_path" ]; then
+        fail "Topic file is missing or unreadable: $topic_path"
+    fi
+done
+
+{
+    printf '%s\n\n' "$marker"
+    printf '# Global preferences\n\n'
+    printf 'Each topic is imported from the agent-dotfiles repository.\n\n'
+    for topic in $TOPIC_FILES; do
+        printf '@%s/%s\n' "$REPO_ROOT" "$topic"
+    done
+} >"$claude_source"
+
+{
+    printf '%s\n' "$marker"
+    printf '<!-- Generated by make apply. Do not edit directly. -->\n\n'
+    for topic in $TOPIC_FILES; do
+        cat "$REPO_ROOT/$topic"
+        printf '\n'
+    done
+} >"$agents_source"
+
+validate_parent "$claude_target"
+validate_parent "$AGENTS_FILE"
+validate_parent "$codex_target"
+validate_regular_destination "$claude_target"
+validate_regular_destination "$AGENTS_FILE"
+
+confirm_regular_destination "$claude_target" "$claude_source"
+confirm_regular_destination "$AGENTS_FILE" "$agents_source"
+confirm_codex_destination
+
+if ! mkdir -p "$(dirname -- "$claude_target")" "$(dirname -- "$AGENTS_FILE")" "$(dirname -- "$codex_target")"; then
+    fail 'Unable to create destination directories.'
+fi
+
+install_file_atomically "$claude_source" "$claude_target"
+install_file_atomically "$agents_source" "$AGENTS_FILE"
+install_codex_symlink_atomically
+
+printf 'Applied Claude and Codex instructions from %s\n' "$REPO_ROOT"
