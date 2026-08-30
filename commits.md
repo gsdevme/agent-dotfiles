@@ -5,12 +5,18 @@ Always use Conventional Commits / semantic commit format for any commit you auth
 - Format: `type(scope): subject` — scope optional, subject in imperative mood, no trailing period.
 - Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `revert`.
 - **Do not use `chore`** — pick a more specific type. If nothing else fits, prefer `refactor`, `build`, or `ci` based on what the change actually touches.
-- Use `!` after type/scope or a `BREAKING CHANGE:` footer for breaking changes.
+- Mark breaking changes with a `BREAKING CHANGE:` footer only — never use `!` after the type/scope.
 - Keep the subject ≤72 characters; put detail in the body separated by a blank line.
 - Examples:
   - `feat(auth): add refresh-token rotation`
   - `fix: handle empty response from billing API`
-  - `refactor(parser)!: drop legacy YAML loader`
+  - A breaking change:
+
+    ```
+    refactor(parser): drop legacy YAML loader
+
+    BREAKING CHANGE: YAML 1.1 documents are no longer accepted.
+    ```
 
 ## Atomic commits
 
