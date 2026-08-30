@@ -13,6 +13,8 @@ The root topic files remain canonical and ordered explicitly in the Makefile:
 
 1. `commits.md`
 2. `task-starting.md`
+3. `planning.md`
+4. `code-comments.md`
 
 Claude continues to use its native `@`-import syntax. `make apply` renders
 `~/.claude/CLAUDE.md` with absolute imports for each topic file. This wrapper
