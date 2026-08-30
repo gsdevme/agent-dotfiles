@@ -57,15 +57,18 @@ Before changing anything, it examines:
 - the generated `.agents/AGENTS.md`
 - `~/.codex/AGENTS.md`
 
-A missing destination is safe to create. A file containing the ownership
-marker, or an already-correct Codex symlink, is safe to refresh without a
-prompt.
+A missing destination is safe to create. A regular file whose first line is
+exactly the ownership marker, or an already-correct Codex symlink, is safe to
+refresh without a prompt. A marker appearing later in a file does not
+establish ownership.
 
-For an existing file or wrong symlink without the marker, the script prints a
-unified diff between the existing and desired content and asks whether to
-replace it with a `[y/N]` prompt. Only `y` or `Y` approves replacement. A
-negative response, end-of-file, or non-interactive invocation without input
-aborts with a nonzero status and leaves every destination unchanged.
+For an existing unmanaged regular file or wrong Codex symlink, the script
+prints a unified diff between the existing and desired content and asks
+whether to replace it with a `[y/N]` prompt. Only `y` or `Y` approves
+replacement. A broken symlink's raw target is printed and its diff uses
+`/dev/null` as the existing side. A negative response, end-of-file, or
+non-interactive invocation without input aborts with a nonzero status and
+leaves every destination unchanged.
 
 Directories or other unsupported destination types produce an error and are
 never replaced. All conflict decisions happen before installation begins, so
