@@ -1,4 +1,4 @@
-# claude-dotfiles
+# agent-dotfiles
 
 Portable preferences shared by Claude Code and Codex. The topic files in this
 repository are the canonical source; `make apply` renders the configuration
