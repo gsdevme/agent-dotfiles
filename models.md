@@ -46,5 +46,11 @@ cheapest model that does the job well.
   file's contents; paste the relevant doctrine into the prompt.
 - Batch independent agent launches in a single message so they run
   concurrently.
+- Use absolute paths in Bash commands. A relative path needs a `cd` first, and
+  a `cd` inside a compound command can trigger a permission prompt and an extra
+  round-trip.
+- Scope `grep`/`rg` and other searches to a specific absolute path rather than
+  the whole repo — a targeted search returns fewer, more relevant hits and
+  burns fewer tokens.
 
 Project-level `CLAUDE.md` may override this.
