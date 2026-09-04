@@ -1,7 +1,7 @@
 REPO_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 DEST_HOME ?= $(HOME)
 AGENTS_FILE ?= $(REPO_ROOT)/.agents/AGENTS.md
-TOPIC_FILES := commits.md task-starting.md planning.md code-comments.md
+TOPIC_FILES := models.md commits.md task-starting.md planning.md code-comments.md
 
 .PHONY: apply test
 

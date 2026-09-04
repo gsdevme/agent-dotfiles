@@ -33,6 +33,7 @@ The repository keeps topics as separate files and the Makefile's ordered
 
 ```
 <repository>/
+├── models.md
 ├── commits.md
 ├── task-starting.md
 ├── planning.md
