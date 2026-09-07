@@ -46,11 +46,20 @@ cheapest model that does the job well.
   file's contents; paste the relevant doctrine into the prompt.
 - Batch independent agent launches in a single message so they run
   concurrently.
-- Use absolute paths in Bash commands. A relative path needs a `cd` first, and
-  a `cd` inside a compound command can trigger a permission prompt and an extra
-  round-trip.
+- Use absolute paths in Bash commands (see [Bash commands](#bash-commands)).
 - Scope `grep`/`rg` and other searches to a specific absolute path rather than
   the whole repo — a targeted search returns fewer, more relevant hits and
   burns fewer tokens.
+
+## Bash commands
+
+Use absolute paths built from the repository root rather than `cd <dir> && <cmd>`
+with relative paths. Relative paths after a `cd` can't be resolved by the
+permission checker, which causes an approval prompt on every command.
+
+```
+Bad:  cd <repo-root> && grep -rn "foo" src
+Good: grep -rn "foo" <repo-root>/src
+```
 
 Project-level `CLAUDE.md` may override this.
