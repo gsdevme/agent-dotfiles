@@ -33,11 +33,32 @@ cheapest model that does the job well.
 - **Implementation** — for any multi-file change, spawn general-purpose agents
   (opus) with exact file paths, the relevant doctrine from this file, and a
   definition of done (tests to run). Independent changes get parallel agents in
-  one message.
+  one message, each under its own name (see [Agent names](#agent-names)).
 - **Verification/review** — adversarial review and blast-radius checks go to
   opus agents; plain test runs and lint passes go to sonnet agents.
 - **Fable edits directly** only when the change is small — one or two files, in
   already-known locations.
+
+## Agent names
+
+Every `Agent` call takes a `name` alongside `subagent_type`. Without one, a
+batch of workers all report under the same type label — `general-purpose`,
+`general-purpose`, `general-purpose` — with nothing to tell them apart, and
+none of them can be addressed with `SendMessage`.
+
+Always pass a name, and put the model tier in it:
+
+- opus workers — `opus-agent-1`, `opus-agent-2`, …
+- sonnet workers — `sonnet-agent-1`, `sonnet-agent-2`, …
+
+Number monotonically across the session rather than restarting per batch: a
+number is never reused, so the second batch picks up where the first left off.
+Names must start with a letter or digit and may contain only letters, digits,
+underscores, and hyphens.
+
+The `description` argument is separate — it supplies the activity line shown
+beside the name, so the name carries identity and `description` carries the
+task.
 
 ## Token rules
 
