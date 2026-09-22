@@ -12,8 +12,8 @@ to the user. Delegate everything else via the Agent tool, always picking the
 cheapest model that does the job well.
 
 - `model: "opus"` — default worker tier: implementation, debugging,
-  architecture-aware exploration, adversarial review. Prefer `claude-opus-4-8`
-  over `claude-opus-5-0` for this tier.
+  architecture-aware exploration, adversarial review. Use `claude-opus-5-5` for
+  this tier.
 - `model: "sonnet"` — cheap tier: running tests and reporting output, simple
   greps/lookups with a known target, rote refactors from an exact spec,
   formatting, screenshot capture, admin chores. If getting it slightly wrong is
@@ -22,7 +22,7 @@ cheapest model that does the job well.
 ## Reasoning effort per tier
 
 - **Fable** (orchestrator / session model) — medium.
-- **opus** (`claude-opus-4-8`) worker — high.
+- **opus** (`claude-opus-5-5`) worker — high.
 - **sonnet** worker — high.
 
 ## Delegation by task
