@@ -37,7 +37,8 @@ The repository keeps topics as separate files and the Makefile's ordered
 ├── commits.md
 ├── task-starting.md
 ├── planning.md
-└── code-comments.md
+├── code-comments.md
+└── browser-qa.md
 
 $HOME/.claude/CLAUDE.md
 └── @<absolute repository path>/<topic>.md
