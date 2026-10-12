@@ -43,6 +43,7 @@ expected_claude() {
   printf '@%s/task-starting.md\n' "$active_repo"
   printf '@%s/planning.md\n' "$active_repo"
   printf '@%s/code-comments.md\n' "$active_repo"
+  printf '@%s/browser-qa.md\n' "$active_repo"
 }
 
 expected_agents() {
@@ -58,6 +59,8 @@ expected_agents() {
   printf '\n'
   cat "$active_repo/code-comments.md"
   printf '\n'
+  cat "$active_repo/browser-qa.md"
+  printf '\n'
 }
 
 make_fixture_repo() {
@@ -70,6 +73,7 @@ make_fixture_repo() {
   cp "$repo_root/task-starting.md" "$active_repo/task-starting.md"
   cp "$repo_root/planning.md" "$active_repo/planning.md"
   cp "$repo_root/code-comments.md" "$active_repo/code-comments.md"
+  cp "$repo_root/browser-qa.md" "$active_repo/browser-qa.md"
 }
 
 @test "fresh apply renders ordered documents and an absolute Codex symlink" {
