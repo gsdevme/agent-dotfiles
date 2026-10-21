@@ -91,6 +91,12 @@ standard runners; private repositories use the account's included allowance,
 with billing possible after it is exhausted. See [GitHub Actions product
 billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
 
+Step 2 is easy to forget. Running `/reconcile-references` in a Claude Code
+session inside this repo (a project skill, see
+[`.claude/skills/reconcile-references/`](./.claude/skills/reconcile-references/SKILL.md))
+checks every topic file has its import line, adds any that are missing, and
+flags imports whose files no longer exist.
+
 ## What belongs in here
 
 See [`CLAUDE.md`](./CLAUDE.md): general, portable development practices only,
